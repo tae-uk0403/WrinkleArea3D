@@ -1,8 +1,11 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import FileResponse
 from depth.depth_area import calculate_surface_area
 from segmentation.inference.utils import segmented_area
+from .visualize_area import visualize_area
+
 import os
-import json
+import cv2
 
 app = FastAPI()
 
@@ -27,4 +30,10 @@ async def calculate_area(
     print("depth_coordinates is : ", len(depth_coordinates))
 
     area_3d = calculate_surface_area(depth_coordinates, depth_path)
-    return {"area_3d": area_3d}
+    area_3d = area_3d * 10000
+    # 결과 이미지에 area_3d 표시
+    result_image_path = "output/result.png"
+
+    visualize_area(area_3d, result_image_path)
+
+    return FileResponse(result_image_path, media_type="image/png")
